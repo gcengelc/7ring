@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Ring Nerede
+server/data/
+server/.env
+secrets/
+/tmp-export/
