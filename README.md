@@ -1,4 +1,4 @@
-# Ring Nerede
+# 7Ring
 
 Yeditepe kampüs ringini öğrenci bildirimleriyle takip eden mobil uygulama.
 Ringi gören öğrenci durağı bildirir, herkes ringin en son nerede görüldüğünü
