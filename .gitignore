@@ -45,3 +45,6 @@ server/data/
 server/.env
 secrets/
 /tmp-export/
+
+# Kroki hazırlama ara dosyası
+assets/.route-map-source.png
