@@ -24,7 +24,7 @@ export const STOPS: Stop[] = [
   { id: 'ust', name: 'Üst Kapı', x: 89.6, y: 12.4, coords: null },
   { id: 'meydan', name: 'Meydan', x: 48.0, y: 26.6, coords: null },
   { id: 'rekt', name: 'Rektörlük', x: 52.9, y: 35.0, coords: null },
-  { id: 'gsf', name: 'GSF Arka Kapı', x: 76.7, y: 62.6, coords: null },
+  { id: 'gsf', name: 'GSF Arka Kapı', x: 73.7, y: 76.7, coords: null },
   { id: 'sosyal', name: 'Sosyal Tesis', x: 70.6, y: 49.8, coords: null },
   { id: 'alt', name: 'Alt Kapı', x: 24.1, y: 37.0, coords: null },
   { id: 'festival', name: 'Festival Alanı', x: 46.9, y: 62.6, coords: null },
@@ -36,7 +36,7 @@ export const STOPS: Stop[] = [
  * Krokide 10 pin var, listede 9 durak. Bu pin hiçbir durağa atanmadı;
  * eksik bir durak varsa konumu burada hazır duruyor.
  */
-export const UNASSIGNED_PIN = { x: 73.7, y: 76.7 };
+export const UNASSIGNED_PIN = { x: 76.7, y: 62.6 };
 
 export const stopById = (id: string): Stop | undefined => STOPS.find((s) => s.id === id);
 
