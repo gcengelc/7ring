@@ -48,3 +48,6 @@ secrets/
 
 # Kroki hazırlama ara dosyası
 assets/.route-map-source.png
+
+# İç notlar (paylaşıma kapalı)
+docs/INTERNAL.md
