@@ -303,24 +303,25 @@ console.log(`${pins.length} pin bulundu.`);
 
 erasePins(width, height, rgba, pins);
 
+// Çizimin kendi en-boy oranıyla kırpılır — kareye tamamlanmaz. Kampüs
+// dikey uzun olduğu için kare tuval, dikey panelde krokiyi küçültürdü.
+// Uygulama görselin oranını bilir ve noktaları çizimin gerçek kutusuna
+// göre yerleştirir (bkz. ROUTE_IMAGE_ASPECT).
 const bounds = contentBounds(width, height, rgba);
-// Kareye tamamla: uygulama görseli kare panele "contain" ile yerleştirir,
-// kare olmayan kırpma pinlerin yüzde konumlarını kaydırırdı.
-const cw = bounds.x1 - bounds.x0 + 1;
-const ch = bounds.y1 - bounds.y0 + 1;
-const side = Math.max(cw, ch) + PADDING * 2;
-const offsetX = bounds.x0 - Math.round((side - cw) / 2);
-const offsetY = bounds.y0 - Math.round((side - ch) / 2);
+const outW = bounds.x1 - bounds.x0 + 1 + PADDING * 2;
+const outH = bounds.y1 - bounds.y0 + 1 + PADDING * 2;
+const offsetX = bounds.x0 - PADDING;
+const offsetY = bounds.y0 - PADDING;
 
-const out = Buffer.alloc(side * side * 4); // şeffaf
-for (let y = 0; y < side; y++) {
-  for (let x = 0; x < side; x++) {
+const out = Buffer.alloc(outW * outH * 4); // şeffaf
+for (let y = 0; y < outH; y++) {
+  for (let x = 0; x < outW; x++) {
     const sx = offsetX + x;
     const sy = offsetY + y;
     if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
     const s = sy * width + sx;
     if (isBackground(rgba, s)) continue; // zemin şeffaf kalır
-    const d = (y * side + x) * 4;
+    const d = (y * outW + x) * 4;
     out[d] = rgba[s * 4];
     out[d + 1] = rgba[s * 4 + 1];
     out[d + 2] = rgba[s * 4 + 2];
@@ -328,12 +329,13 @@ for (let y = 0; y < side; y++) {
   }
 }
 
-writePng(OUT, side, side, out);
-console.log(`Yazıldı: assets/route-map.png (${side}×${side})`);
+writePng(OUT, outW, outH, out);
+console.log(`Yazıldı: assets/route-map.png (${outW}×${outH})`);
+console.log(`\nsrc/data/route.ts için:  ROUTE_IMAGE_ASPECT = ${(outW / outH).toFixed(4)}`);
 
 console.log('\nsrc/data/stops.ts için pin konumları (yukarıdan aşağıya):');
 pins.forEach((pin, i) => {
-  const x = ((pin.tipX - offsetX) / side) * 100;
-  const y = ((pin.tipY - offsetY) / side) * 100;
+  const x = ((pin.tipX - offsetX) / outW) * 100;
+  const y = ((pin.tipY - offsetY) / outH) * 100;
   console.log(`  ${String(i + 1).padStart(2)}. x: ${x.toFixed(1)}, y: ${y.toFixed(1)}`);
 });

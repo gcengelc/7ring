@@ -18,6 +18,16 @@ import type { ImageSourcePropType } from 'react-native';
 export const ROUTE_IMAGE: ImageSourcePropType | null = require('../../assets/route-map.png');
 
 /**
+ * Krokinin en-boy oranı (genişlik / yükseklik).
+ *
+ * Görsel panele `contain` ile yerleşir, yani panel oranı farklıysa kenarlarda
+ * boşluk kalır. Durak noktaları panele değil çizimin gerçek kutusuna göre
+ * konumlanmalı; bu oran o kutuyu hesaplamak için gerekli. Krokiyi
+ * değiştirdiğinizde `scripts/prepare-route-map.mjs` yeni değeri basar.
+ */
+export const ROUTE_IMAGE_ASPECT = 0.5639;
+
+/**
  * Geçici şemanın kapalı güzergâh çizgisi (viewBox "0 0 100 100").
  * ROUTE_IMAGE tanımlıysa kullanılmaz.
  */

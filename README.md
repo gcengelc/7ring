@@ -216,8 +216,9 @@ eas submit --platform ios
   listeleme sırasını etkiler, push seçimini etkilemez (`server/src/push.js`).
 - **Güven puanı basit.** Şu an tek bildirim atan herkes "A" alıyor. Yanlış
   bildirim tespiti (aykırı bildirimleri ayıklama) henüz yok.
-- **Hat şeması gerçek harita değil.** Güzergâhın topolojisini doğru gösterir,
-  coğrafi konumu göstermez.
+- **Kroki üzerindeki pin → durak eşleşmesi tahmin.** Krokide isim yoktu;
+  pinler konumlarına göre dağıtıldı ve 10 pinden biri boşta kaldı
+  (`UNASSIGNED_PIN`). Yanlış olanı düzeltmek `stops.ts` içinde tek satır.
 - **Oturumlar süresiz.** Sunucuda jeton sona erme süresi yok; eklenmesi
   önerilir (`sessions.created_at` bu iş için hazır duruyor).
 

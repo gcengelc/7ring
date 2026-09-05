@@ -1,24 +1,35 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  Image,
-  LayoutChangeEvent,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Image, LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { Dot } from '@/components/Dot';
 import { Text } from '@/components/Text';
-import { ROUTE_IMAGE, ROUTE_PATH } from '@/data/route';
+import { ROUTE_IMAGE, ROUTE_IMAGE_ASPECT, ROUTE_PATH } from '@/data/route';
 import { useApp } from '@/store/AppProvider';
 import { colors, spacing } from '@/theme';
 
 const PLOT_INSET = 18;
-const DOT_SIZE = 12;
+const DOT_SIZE = 14;
+
+/**
+ * Krokinin panel içinde gerçekten kapladığı kutu.
+ *
+ * Görsel `contain` ile yerleşiyor: panelden farklı orandaysa kenarlarda boşluk
+ * kalıyor. Durak noktaları panele göre konumlansaydı krokiden kayardı, o yüzden
+ * önce çizimin kutusunu hesaplayıp yüzdeleri onun içine uyguluyoruz.
+ */
+function drawnBox(plot: { width: number; height: number }) {
+  if (!ROUTE_IMAGE) return { x: 0, y: 0, width: plot.width, height: plot.height };
+  const panelAspect = plot.width / plot.height;
+  if (ROUTE_IMAGE_ASPECT > panelAspect) {
+    const height = plot.width / ROUTE_IMAGE_ASPECT;
+    return { x: 0, y: (plot.height - height) / 2, width: plot.width, height };
+  }
+  const width = plot.height * ROUTE_IMAGE_ASPECT;
+  return { x: (plot.width - width) / 2, y: 0, width, height: plot.height };
+}
 
 /**
  * Hat şeması — kampüs krokisi üzerinde durakların anlık durumu.
@@ -38,17 +49,18 @@ export default function MapScreen() {
     setPlot({ width, height });
   };
 
+  const box = drawnBox(plot);
+
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
-    >
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <Text variant="title">Hat şeması</Text>
       <Text variant="body" style={styles.lede}>
         Duraklar kampüs krokisinde işaretli. Rengi en canlı olan nokta ringin en son
         görüldüğü duraktır; ayrıntı için noktaya dokun.
       </Text>
 
+      {/* Panel kalan alanın tamamını kaplar — kroki büyüdükçe noktalara
+          dokunmak kolaylaşıyor. */}
       <View style={styles.board}>
         <View style={styles.plot} onLayout={onLayout}>
           {ROUTE_IMAGE ? (
@@ -88,12 +100,12 @@ export default function MapScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${s.stop.name}, ${s.freshness.state}`}
                 // Nokta küçük; dokunma alanı parmak için genişletiliyor.
-                hitSlop={14}
+                hitSlop={16}
                 style={({ pressed }) => [
                   styles.dot,
                   {
-                    left: (s.stop.x / 100) * plot.width - DOT_SIZE / 2,
-                    top: (s.stop.y / 100) * plot.height - DOT_SIZE / 2,
+                    left: box.x + (s.stop.x / 100) * box.width - DOT_SIZE / 2,
+                    top: box.y + (s.stop.y / 100) * box.height - DOT_SIZE / 2,
                     opacity: pressed ? 0.6 : 1,
                   },
                 ]}
@@ -108,22 +120,25 @@ export default function MapScreen() {
             ))}
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.app },
-  content: { paddingHorizontal: spacing.screenX, paddingBottom: 40 },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.app,
+    paddingHorizontal: spacing.screenX,
+  },
   lede: { marginTop: 8, fontSize: 14, color: colors.muted },
   board: {
+    flex: 1,
     marginTop: 18,
+    // Sekme çubuğu panelin alt köşelerini kapatmasın diye küçük bir pay.
+    marginBottom: 4,
     borderRadius: 24,
     backgroundColor: colors.navy,
     padding: PLOT_INSET,
-    // Kroki kare; panel de kare olmalı. Aksi hâlde "contain" görseli
-    // ortalar, durak yüzdeleri de krokiden kayar.
-    aspectRatio: 1,
   },
   plot: { flex: 1, overflow: 'hidden' },
   dot: { position: 'absolute' },
