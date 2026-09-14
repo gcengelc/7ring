@@ -13,7 +13,8 @@ import type { Stop } from '@/types';
  *
  * Krokide isim yazmadığı için pin → durak eşleşmesi elle yapıldı. Bir durağı
  * başka bir pine taşımak için yalnızca o satırın x/y değerlerini değiştirin;
- * id'ler sunucuyla paylaşıldığı için sabit kalmalı (server/src/index.js).
+ * id'ler veritabanındaki `stops` tablosuyla paylaşıldığı için sabit
+ * kalmalı (supabase/migrations).
  *
  * `coords` gerçek enlem/boylamdır ve bilerek boş bırakıldı: uydurulmuş
  * koordinat, "en yakın durak" özelliğini sessizce yanlış çalıştırır.

@@ -108,8 +108,8 @@ export default function Profile() {
 
       {isDemoMode ? (
         <Text variant="meta" style={styles.demoNote}>
-          Demo modu: bildirimler yalnızca bu cihazda tutuluyor. Sunucu adresi tanımlandığında
-          uygulama gerçek veriye geçer.
+          Demo modu: bildirimler yalnızca bu cihazda tutuluyor. Supabase anahtarları
+          tanımlandığında uygulama gerçek veriye geçer.
         </Text>
       ) : null}
 

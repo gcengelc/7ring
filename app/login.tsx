@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ApiError, isDemoMode } from '@/api';
+import { ApiError, CODE_LENGTH, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
 import { MAIL_DOMAIN } from '@/data/stops';
@@ -51,8 +51,8 @@ export default function Login() {
   }
 
   async function onVerify() {
-    if (code.length !== 4) {
-      setError('Kod 4 haneli olmalı.');
+    if (code.length !== CODE_LENGTH) {
+      setError(`Kod ${CODE_LENGTH} haneli olmalı.`);
       return;
     }
     setBusy(true);
@@ -129,15 +129,15 @@ export default function Login() {
             <TextInput
               value={code}
               onChangeText={(v) => {
-                setCode(v.replace(/\D/g, '').slice(0, 4));
+                setCode(v.replace(/\D/g, '').slice(0, CODE_LENGTH));
                 setError('');
               }}
-              placeholder="4 haneli kod"
+              placeholder={`${CODE_LENGTH} haneli kod`}
               placeholderTextColor={colors.onNavy45}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
               autoComplete="sms-otp"
-              maxLength={4}
+              maxLength={CODE_LENGTH}
               autoFocus
               editable={!busy}
               onSubmitEditing={onVerify}
@@ -161,7 +161,8 @@ export default function Login() {
 
         {isDemoMode ? (
           <Text style={styles.demoNote}>
-            Demo modu: sunucu bağlı değil, 4 haneli herhangi bir kod kabul edilir.
+            Demo modu: Supabase bağlı değil, {CODE_LENGTH} haneli herhangi bir kod kabul
+            edilir.
           </Text>
         ) : null}
       </ScrollView>

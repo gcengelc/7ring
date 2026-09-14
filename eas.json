@@ -8,7 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://localhost:4000"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE-KIMLIGI.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "ANON_KEY"
       }
     },
     "preview": {
@@ -17,7 +18,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.ringnerede.example"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE-KIMLIGI.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "ANON_KEY"
       }
     },
     "production": {
@@ -26,7 +28,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.ringnerede.example"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE-KIMLIGI.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "ANON_KEY"
       }
     }
   },

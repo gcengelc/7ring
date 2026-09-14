@@ -6,7 +6,8 @@ anında görür.
 
 **Yığın:** React Native + Expo (SDK 57), TypeScript, expo-router.
 Tek kod tabanı hem App Store hem Google Play için derlenir.
-Sunucu tarafı Node 22+ üzerinde çalışan bağımsız bir servistir.
+Backend Supabase: Auth (e-posta kodu), Postgres (bildirimler) ve push için
+bir Edge Function. Ayrıca barındırılan bir sunucu yok.
 
 ---
 
@@ -17,24 +18,25 @@ npm install
 npx expo start
 ```
 
-Sunucu adresi tanımlı değilken uygulama **demo modunda** açılır: bildirimler
-cihazda tutulur, 4 haneli herhangi bir kod girişi kabul eder. Her ekran bu
-modda denenebilir.
+Supabase anahtarları tanımlı değilken uygulama **demo modunda** açılır:
+bildirimler cihazda tutulur, 6 haneli herhangi bir kod girişi kabul edilir.
+Her ekran bu modda denenebilir.
 
-Gerçek veriyle çalıştırmak için sunucuyu ayağa kaldırın:
-
-```bash
-cd server && npm install && npm start
-```
-
-Sonra uygulamayı sunucu adresiyle başlatın:
+Gerçek veriyle çalıştırmak için `.env.example` dosyasını `.env` olarak
+kopyalayıp Supabase projenizin değerlerini girin:
 
 ```bash
-EXPO_PUBLIC_API_BASE_URL=http://localhost:4000 npx expo start
+cp .env.example .env
+# EXPO_PUBLIC_SUPABASE_URL ve EXPO_PUBLIC_SUPABASE_ANON_KEY
+npx expo start
 ```
 
-> Fiziksel cihazdan test ederken `localhost` yerine bilgisayarınızın yerel IP
-> adresini kullanın (`http://192.168.1.x:4000`).
+Şema ve push fonksiyonu depoda hazır:
+
+```bash
+npm run db:push            # supabase/migrations → veritabanı
+npm run functions:deploy   # push gönderen Edge Function
+```
 
 ---
 
@@ -55,19 +57,27 @@ src/
   lib/freshness.ts       bildirim yaşı → renk ve metin
   lib/format.ts          saat, mesafe, e-posta normalleştirme
   lib/push.ts            push izni ve jeton kaydı
-  api/                   RingApi arayüzü + HTTP ve cihaz-içi uygulamaları
+  lib/supabase.ts        Supabase istemcisi + oturum kasası
+  api/                   RingApi arayüzü + Supabase ve cihaz-içi uygulamaları
   store/AppProvider.tsx  oturum, bildirimler, ayarlar, türetilmiş durum
   components/            Text, Button, Dot, StopRow, Toast, ConfirmSheet
 
-server/                  Node servisi (node:http + node:sqlite, çatı yok)
+supabase/
+  migrations/            şema, RLS, RPC'ler — npm run db:push
+  functions/             Edge Function: yeni bildirimde push gönderir
+
 scripts/make-assets.mjs  ikon/splash üretimi — npm run icons
 ```
 
-### Mimarideki iki karar
+### Mimarideki kararlar
 
-**Tek API arayüzü.** Ekranlar `api.report(...)` çağırır; arkasında sunucu mu
+**Tek API arayüzü.** Ekranlar `api.report(...)` çağırır; arkasında Supabase mi
 yoksa cihaz-içi demo mu olduğunu bilmez (`src/api/index.ts`). Backend
-değiştirilecekse yalnızca `HttpApi` değişir.
+değiştirilecekse yalnızca `SupabaseApi` değişir.
+
+**Yazmalar RPC'den geçer.** Durak doğrulaması, bildirim bekleme süresi ve
+kısa ad üretimi veritabanındaki `report_sighting` / `register_push_token`
+fonksiyonlarında durur; RLS satır erişimini, RPC ise kuralları uygular.
 
 **Tazelik = renk.** Bir bildirimin yaşı tek bir yerde (`lib/freshness.ts`)
 renge, duruma ve metne çevrilir. Ana ekrandaki nokta, liste satırı, harita pini

@@ -27,7 +27,7 @@ import type { Session, Settings, Sighting, StopStatus } from '@/types';
 
 /** Saat ve "x dk önce" değerleri bu aralıkta tazelenir. */
 const TICK_MS = 10_000;
-/** Sunucudan bildirimleri çekme aralığı. */
+/** Bildirimleri yeniden çekme aralığı. */
 const POLL_MS = 30_000;
 
 interface AppValue {
@@ -81,9 +81,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const [saved, savedSettings] = await Promise.all([loadSession(), loadSettings()]);
       if (!alive) return;
-      setSession(saved);
       setSettings(savedSettings);
-      setBooting(false);
+
+      // Supabase jetonu kendi kasasında tutar ve tazeler; orada geçerli bir
+      // oturum yoksa cihazda duran kaydı da kullanmayız — yoksa kullanıcı
+      // girmiş görünür ama her istek 401 döner.
+      const live = api.restoreSession ? await api.restoreSession() : saved;
+      if (!alive) return;
+      if (live) {
+        setSession(live);
+        if (!saved || saved.token !== live.token) await saveSession(live);
+      } else {
+        setSession(null);
+        if (saved) await clearSession();
+      }
+      if (alive) setBooting(false);
     })();
     return () => {
       alive = false;
@@ -126,7 +138,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [session, refresh]);
 
-  /* ── Push kaydı: ayar açıkken jetonu sunucuya bildir ───────────── */
+  /* ── Push kaydı: ayar açıkken jetonu kaydet ────────────────────── */
   useEffect(() => {
     if (!session) return;
     let alive = true;
@@ -214,7 +226,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Kendi bildirimlerimiz iki adla gelebilir: gönderim cevabında 'sen',
-   * sunucudan çekilen listede e-postanın kısa adı. İkisi de bize aittir.
+   * listede ise e-postanın kısa adı. İkisi de bize aittir.
    */
   const isMine = useCallback(
     (sighting: Sighting) => {
@@ -260,6 +272,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (session && pushToken.current) {
       await api.unregisterPushToken(session.token, pushToken.current).catch(() => undefined);
     }
+    await api.signOut?.().catch(() => undefined);
     await clearSession();
     pendingEmail.current = null;
     pushToken.current = null;
@@ -273,7 +286,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!session) throw new ApiError('Bildirim için giriş yapmalısın.');
       if (!stopById(stopId)) throw new ApiError('Böyle bir durak yok.');
 
-      // İyimser ekleme: bildirim listede anında görünür, sonra sunucununkiyle
+      // İyimser ekleme: bildirim listede anında görünür, sonra kaydedilenle
       // değiştirilir. Gönderim başarısızsa geri alınır.
       const optimistic: Sighting = {
         id: `pending-${Date.now()}`,

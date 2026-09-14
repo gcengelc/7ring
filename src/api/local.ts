@@ -3,15 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STOPS } from '@/data/stops';
 import { isValidLocalPart, normalizeLocalPart } from '@/lib/format';
 import type { Sighting } from '@/types';
-import { ApiError, type RingApi } from './types';
+import { ApiError, CODE_LENGTH, type RingApi } from './types';
 
 const KEY = 'ring.local.sightings';
 
 /**
- * Sunucu adresi tanımlı değilken devreye giren cihaz-içi uygulama.
+ * Supabase anahtarları tanımlı değilken devreye giren cihaz-içi uygulama.
  *
- * Mağaza sürümünde EXPO_PUBLIC_API_BASE_URL doludur ve bu sınıf hiç
- * kullanılmaz; amacı, backend ayağa kalkmadan da uygulamanın eksiksiz
+ * Mağaza sürümünde EXPO_PUBLIC_SUPABASE_* doludur ve bu sınıf hiç
+ * kullanılmaz; amacı, backend hazır olmadan da uygulamanın eksiksiz
  * denenebilmesi. Bildirimler yalnızca o cihazda görünür.
  */
 export class LocalApi implements RingApi {
@@ -38,7 +38,9 @@ export class LocalApi implements RingApi {
   }
 
   async verifyCode(_email: string, code: string): Promise<{ token: string }> {
-    if (!/^\d{4}$/.test(code)) throw new ApiError('Kod 4 haneli olmalı.');
+    if (!new RegExp(`^\\d{${CODE_LENGTH}}$`).test(code)) {
+      throw new ApiError(`Kod ${CODE_LENGTH} haneli olmalı.`);
+    }
     return { token: 'local-demo-token' };
   }
 
@@ -70,7 +72,7 @@ export class LocalApi implements RingApi {
   }
 
   async registerPushToken(): Promise<void> {
-    // Cihaz-içi modda gönderecek sunucu yok.
+    // Cihaz-içi modda push gönderecek bir backend yok.
   }
 
   async unregisterPushToken(): Promise<void> {}

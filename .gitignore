@@ -31,6 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -41,8 +42,8 @@ yarn-error.*
 /android
 
 # Ring Nerede
-server/data/
-server/.env
+supabase/.temp/
+supabase/.branches
 secrets/
 /tmp-export/
 

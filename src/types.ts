@@ -20,7 +20,7 @@ export interface Sighting {
   at: number;
   /** Bildirimi atan öğrencinin kısa adı; kendi bildiriminde 'sen'. */
   by: string;
-  /** Sunucudan gelmeyip henüz gönderilememiş bildirimler. */
+  /** Henüz gönderilememiş, yalnızca ekranda duran bildirimler. */
   pending?: boolean;
 }
 
