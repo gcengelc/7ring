@@ -113,6 +113,12 @@ npm run typecheck      # tip kontrolü
 npx expo export        # paketin derlendiğini doğrular
 ```
 
+`package.json` içindeki `overrides` alanı `react-dom`'u `react` ile aynı
+sürüme sabitler. Sebebi: react-dom doğrudan bağımlılığımız değil, expo-router
+üzerinden gelen bir peer; npm onu en yeni sürümle çözmeye çalışıyor ve Expo
+SDK'nın sabitlediği react sürümüyle çakışıp `npm install`'ı düşürüyordu.
+Expo SDK 57 zaten ikisini de 19.2.3 bekliyor (`bundledNativeModules.json`).
+
 Android emülatörde çalıştırmak için `ANDROID_HOME` tanımlı olmalı:
 
 ```bash
