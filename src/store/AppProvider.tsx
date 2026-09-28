@@ -260,6 +260,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (session && pushToken.current) {
       await api.unregisterPushToken(session.token, pushToken.current).catch(() => undefined);
     }
+    if (session) await api.signOut(session.token).catch(() => undefined);
     await clearSession();
     pendingEmail.current = null;
     pushToken.current = null;

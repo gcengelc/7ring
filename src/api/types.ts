@@ -3,11 +3,14 @@ import type { Sighting } from '@/types';
 /**
  * Uygulamanın sunucudan beklediği tek arayüz.
  *
- * İki uygulaması var: `HttpApi` (server/ klasöründeki gerçek servis) ve
- * `LocalApi` (sunucu adresi tanımlı değilken cihaz üstünde çalışan demo).
- * Ekranlar hangisinin aktif olduğunu bilmez.
+ * Üç uygulaması var: `SupabaseApi` (supabase/ klasöründeki şema),
+ * `HttpApi` (server/ klasöründeki servis) ve `LocalApi` (arka uç tanımlı
+ * değilken cihaz üstünde çalışan demo). Ekranlar hangisinin aktif olduğunu
+ * bilmez.
  */
 export interface RingApi {
+  /** E-postayla gelen doğrulama kodunun hane sayısı. */
+  readonly codeLength: number;
   /** Öğrenci e-postasına doğrulama kodu gönderir. */
   requestCode(email: string): Promise<void>;
   /** Kodu doğrular, oturum jetonu döner. */
@@ -24,6 +27,8 @@ export interface RingApi {
   ): Promise<void>;
   /** Push aboneliğini kaldırır. */
   unregisterPushToken(token: string, pushToken: string): Promise<void>;
+  /** Bu cihazdaki oturumu sunucu tarafında da kapatır. */
+  signOut(token: string): Promise<void>;
 }
 
 /** Kullanıcıya gösterilebilir hata — mesajı doğrudan arayüzde çıkar. */

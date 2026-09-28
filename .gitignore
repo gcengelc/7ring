@@ -48,3 +48,8 @@ secrets/
 
 # Kroki hazırlama ara dosyası
 assets/.route-map-source.png
+
+# Supabase CLI
+supabase/.branches/
+supabase/.temp/
+supabase/functions/.env

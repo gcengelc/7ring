@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ApiError, isDemoMode } from '@/api';
+import { ApiError, api, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
 import { MAIL_DOMAIN } from '@/data/stops';
@@ -51,8 +51,8 @@ export default function Login() {
   }
 
   async function onVerify() {
-    if (code.length !== 4) {
-      setError('Kod 4 haneli olmalı.');
+    if (code.length !== api.codeLength) {
+      setError(`Kod ${api.codeLength} haneli olmalı.`);
       return;
     }
     setBusy(true);
@@ -129,15 +129,15 @@ export default function Login() {
             <TextInput
               value={code}
               onChangeText={(v) => {
-                setCode(v.replace(/\D/g, '').slice(0, 4));
+                setCode(v.replace(/\D/g, '').slice(0, api.codeLength));
                 setError('');
               }}
-              placeholder="4 haneli kod"
+              placeholder={`${api.codeLength} haneli kod`}
               placeholderTextColor={colors.onNavy45}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
               autoComplete="sms-otp"
-              maxLength={4}
+              maxLength={api.codeLength}
               autoFocus
               editable={!busy}
               onSubmitEditing={onVerify}

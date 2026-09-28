@@ -1,0 +1,53 @@
+# Supabase CLI yapılandırması — yerel geliştirme (`supabase start`) içindir.
+# Barındırılan projede aynı Auth ayarlarını panelden yapın (README → Supabase).
+project_id = "ring-nerede"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+# Yerelde giden e-postalar buraya düşer: http://localhost:54324
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "ringnerede://"
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+# Uygulama bu uzunlukta kod bekler: EXPO_PUBLIC_SUPABASE_OTP_LENGTH ile aynı olmalı.
+otp_length = 6
+otp_expiry = 600
+max_frequency = "60s"
+
+# Yeni kullanıcıya "confirmation", kayıtlı kullanıcıya "magic_link" şablonu
+# gider. İkisi de bağlantı yerine kodu göstermeli.
+[auth.email.template.confirmation]
+subject = "Ring Nerede giriş kodun"
+content_path = "./supabase/templates/otp.html"
+
+[auth.email.template.magic_link]
+subject = "Ring Nerede giriş kodun"
+content_path = "./supabase/templates/otp.html"
+
+[functions.notify-sighting]
+# Tetikleyiciden paylaşılan sırla çağrılır; kullanıcı JWT'si taşımaz.
+verify_jwt = false
