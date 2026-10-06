@@ -98,7 +98,10 @@ Panelde **Authentication** altında:
   *Email OTP Expiration* → `600`.
 - **Emails → Templates:** *Confirm signup* ve *Magic Link* şablonlarını
   `supabase/templates/otp.html` içeriğiyle değiştirin. Varsayılan şablonlar
-  bağlantı gönderir; uygulama ise `{{ .Token }}` kodunu bekler.
+  bağlantı gönderir; uygulama ise `{{ .Token }}` kodunu bekler. Şablonlar
+  ancak özel SMTP tanımlıyken düzenlenebilir. Panel yerine betikle de
+  yazılabilir (erişim jetonu: Account → Access Tokens):
+  `SUPABASE_ACCESS_TOKEN=sbp_... node scripts/push-email-templates.mjs <proje-ref>`
 - **Emails → SMTP Settings:** kendi SMTP sunucunuzu tanımlayın. Supabase'in
   yerleşik e-postası saatte birkaç iletiyle sınırlıdır, üretim için yetmez.
 
