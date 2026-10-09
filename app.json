@@ -8,13 +8,9 @@
     "userInterfaceStyle": "light",
     "primaryColor": "#0E2A4F",
     "icon": "./assets/icon.png",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0E2A4F"
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ringnerede.app",
@@ -39,8 +35,7 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "POST_NOTIFICATIONS"
-      ],
-      "edgeToEdgeEnabled": true
+      ]
     },
     "plugins": [
       "expo-router",

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiError, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
+import { PRIVACY_URL } from '@/data/legal';
 import { hasCoordinates } from '@/data/stops';
 import { useApp } from '@/store/AppProvider';
 import { colors, fonts, radius, spacing } from '@/theme';
@@ -140,6 +141,17 @@ export default function Profile() {
         </Text>
       ) : null}
 
+      <Pressable
+        onPress={() => void Linking.openURL(PRIVACY_URL)}
+        accessibilityRole="link"
+        accessibilityLabel="Gizlilik politikası"
+        style={({ pressed }) => [styles.legal, { opacity: pressed ? 0.6 : 1 }]}
+      >
+        <Text variant="meta" style={styles.legalLabel}>
+          Gizlilik politikası
+        </Text>
+      </Pressable>
+
       <Button label="Çıkış yap" tone="outline" onPress={signOut} style={styles.signOut} />
       <Button
         label="Hesabımı sil"
@@ -192,4 +204,6 @@ const styles = StyleSheet.create({
   demoNote: { marginTop: 16, color: colors.muted, lineHeight: 18 },
   signOut: { marginTop: 16 },
   deleteAccount: { marginTop: 12 },
+  legal: { alignSelf: 'center', marginTop: 20, paddingVertical: 6, paddingHorizontal: 12 },
+  legalLabel: { color: colors.muted, textDecorationLine: 'underline' },
 });

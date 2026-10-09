@@ -300,6 +300,26 @@ eas submit --platform ios
 - `usesNonExemptEncryption: false` ayarlandı (uygulama yalnızca standart HTTPS
   kullanıyor)
 
+### Yasal sayfalar ve mağaza metinleri
+
+- `docs/privacy.html` ve `docs/account-deletion.html`: gizlilik politikası ve
+  hesap silme sayfası. GitHub'da **Settings → Pages → Branch: main, /docs**
+  ile yayınlanır; adresler `src/data/legal.ts` içindedir (profildeki
+  “Gizlilik politikası” bağlantısı da buraya gider). İki sayfadaki
+  `DESTEK_EPOSTA` yer tutucusunu gerçek destek adresinizle değiştirin.
+- `store/listing.md`: açıklamalar, App Privacy / Veri güvenliği cevapları,
+  inceleme notu şablonu ve yayın kontrol listesi.
+
+Gizlilik sayfası konumun cihazdan çıkmadığını ve bildirimlerin 24 saat sonra
+silindiğini söyler; bu davranışları değiştirirseniz sayfayı da güncelleyin.
+
+### Şikayet edilen bildirimleri gözden geçirme (Supabase)
+
+```sql
+select id, stop_id, by_name, at, flag_count
+from public.sightings where flag_count > 0 order by flag_count desc, at desc;
+```
+
 ### Sürüm numaraları
 
 `eas.json` içinde `autoIncrement` açık — `versionCode` ve `buildNumber` her
