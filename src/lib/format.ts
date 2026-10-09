@@ -10,15 +10,20 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1).replace('.', ',')} km`;
 }
 
-/** Kullanıcı adı kısmı geçerli mi (e-postanın @ öncesi). */
-export const isValidLocalPart = (value: string): boolean =>
-  /^[a-zA-Z0-9._-]{3,}$/.test(value);
+/** Yazılan e-postayı tek biçime indirger: boşluk yok, küçük harf. */
+export const normalizeEmail = (value: string): string =>
+  value.trim().replace(/\s/g, '').toLocaleLowerCase('tr-TR');
 
-/** Yazılan her şeyi tek biçime indirger: boşluk yok, alan adı tek. */
-export const normalizeLocalPart = (value: string): string =>
-  value.trim().replace(/\s/g, '').replace(/@.*$/, '').toLocaleLowerCase('tr-TR');
+/**
+ * Giriş yapabilecek bir adres mi. Kabul edilen alan adı (MAIL_DOMAIN)
+ * kullanıcıya hiçbir yerde gösterilmez; reddedilen adres de nedenini
+ * açıklamayan genel bir mesaj alır. Asıl kontrol sunucuda da yapılır.
+ */
+export const isAllowedEmail = (email: string): boolean =>
+  email.endsWith(MAIL_DOMAIN) &&
+  /^[a-z0-9._-]{3,}$/.test(email.slice(0, -MAIL_DOMAIN.length));
 
-export const toEmail = (localPart: string): string => `${localPart}${MAIL_DOMAIN}`;
+export const EMAIL_REJECTED = 'Bu e-posta adresiyle giriş yapılamıyor.';
 
 /** İki koordinat arası metre — haversine. */
 export function distanceMeters(

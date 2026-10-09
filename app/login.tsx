@@ -12,8 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiError, api, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
-import { MAIL_DOMAIN } from '@/data/stops';
-import { isValidLocalPart, normalizeLocalPart } from '@/lib/format';
+import { EMAIL_REJECTED, isAllowedEmail, normalizeEmail } from '@/lib/format';
 import { useApp } from '@/store/AppProvider';
 import { colors, fonts, radius } from '@/theme';
 
@@ -24,24 +23,22 @@ export default function Login() {
   const { requestCode, verifyCode } = useApp();
 
   const [step, setStep] = useState<Step>('mail');
-  const [localPart, setLocalPart] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const sentTo = `${normalizeLocalPart(localPart) || 'ad.soyad'}${MAIL_DOMAIN}`;
-
   async function onSendCode() {
-    const value = normalizeLocalPart(localPart);
-    if (!isValidLocalPart(value)) {
-      setError('Geçerli bir öğrenci e-postası gir.');
+    const value = normalizeEmail(email);
+    if (!isAllowedEmail(value)) {
+      setError(EMAIL_REJECTED);
       return;
     }
     setBusy(true);
     setError('');
     try {
       await requestCode(value);
-      setLocalPart(value);
+      setEmail(value);
       setStep('code');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Kod gönderilemedi. Tekrar dene.');
@@ -86,8 +83,8 @@ export default function Login() {
           Ring{'\n'}nerede?
         </Text>
         <Text variant="body" style={styles.lede}>
-          Yeditepe kampüsünde ringi gören öğrenciler bildirir, herkes görür. Girmek için
-          öğrenci mailin gerekli.
+          Kampüste ringi gören öğrenciler bildirir, herkes görür. Devam etmek için e-posta
+          adresini gir.
         </Text>
 
         <View style={styles.spacer} />
@@ -95,16 +92,16 @@ export default function Login() {
         {step === 'mail' ? (
           <View style={styles.form}>
             <Text variant="label" style={styles.fieldLabel}>
-              Öğrenci e-postası
+              E-posta
             </Text>
             <View style={styles.field}>
               <TextInput
-                value={localPart}
+                value={email}
                 onChangeText={(v) => {
-                  setLocalPart(v.replace(/\s/g, ''));
+                  setEmail(v.replace(/\s/g, ''));
                   setError('');
                 }}
-                placeholder="ad.soyad"
+                placeholder="E-posta adresin"
                 placeholderTextColor={colors.onNavy45}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -114,9 +111,8 @@ export default function Login() {
                 onSubmitEditing={onSendCode}
                 editable={!busy}
                 style={styles.input}
-                accessibilityLabel="Öğrenci e-postası kullanıcı adı"
+                accessibilityLabel="E-posta adresi"
               />
-              <Text style={styles.domain}>{MAIL_DOMAIN}</Text>
             </View>
             <Text style={styles.error}>{error}</Text>
             <Button label="Doğrulama kodu gönder" tone="accent" loading={busy} onPress={onSendCode} />
@@ -124,7 +120,7 @@ export default function Login() {
         ) : (
           <View style={styles.form}>
             <Text variant="label" style={styles.fieldLabel}>
-              {sentTo} adresine gönderilen kod
+              {email} adresine gönderilen kod
             </Text>
             <TextInput
               value={code}
@@ -211,7 +207,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     padding: 0,
   },
-  domain: { fontFamily: fonts.regular, fontSize: 14, color: colors.onNavy45 },
   codeInput: {
     height: 56,
     backgroundColor: colors.onNavy08,
