@@ -10,7 +10,7 @@ import {
 import { Text } from '@/components/Text';
 import { colors, fonts, radius } from '@/theme';
 
-type Tone = 'primary' | 'accent' | 'subtle' | 'ghost' | 'outline';
+type Tone = 'primary' | 'accent' | 'subtle' | 'ghost' | 'outline' | 'danger';
 
 interface Props {
   label: string;
@@ -30,6 +30,8 @@ const tones: Record<Tone, { bg: string; fg: string; height: number; border?: str
   subtle: { bg: colors.subtle, fg: colors.ink, height: 52 },
   ghost: { bg: 'transparent', fg: colors.onNavy55, height: 36 },
   outline: { bg: 'transparent', fg: colors.muted, height: 52, border: colors.hairline },
+  /** Geri alınamayan eylem (hesap silme). */
+  danger: { bg: 'transparent', fg: '#B3261E', height: 52, border: '#B3261E' },
 };
 
 export function Button({

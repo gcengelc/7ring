@@ -6,6 +6,8 @@
  *   POST /auth/verify        { email, code }        -> { token }
  *   GET  /sightings                                 -> { sightings }
  *   POST /sightings          { stopId }             -> { sighting }
+ *   POST /sightings/flag     { sightingId }         (yanlış bildirim şikayeti)
+ *   DELETE /account                                 (hesabı ve verisini sil)
  *   POST /push/register      { pushToken, nearbyOnly, sound }
  *   POST /push/unregister    { pushToken }
  *   GET  /health
@@ -24,6 +26,8 @@ const CODE_RESEND_MS = 60 * 1000;
 const MAX_CODE_ATTEMPTS = 5;
 /** Aynı kişi aynı durağı bu süre içinde iki kez bildiremez. */
 const REPORT_COOLDOWN_MS = 60 * 1000;
+/** Bu kadar farklı kişi şikayet ederse bildirim herkesten gizlenir. */
+const FLAG_LIMIT = 3;
 
 /** Duraklar istemcideki src/data/stops.ts ile aynı olmalı. */
 const STOPS = new Map(
@@ -158,11 +162,20 @@ async function verifyCode(req, res) {
   return json(res, 200, { token });
 }
 
-function listSightings(res) {
+function listSightings(res, email) {
   const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  // Şikayet eden kişi o bildirimi görmez; FLAG_LIMIT kişi şikayet ederse kimse görmez.
   const rows = db
-    .prepare('SELECT id, stop_id, email, at FROM sightings WHERE at >= ? ORDER BY at DESC')
-    .all(dayAgo);
+    .prepare(
+      `SELECT s.id, s.stop_id, s.email, s.at FROM sightings s
+       WHERE s.at >= ?
+         AND (SELECT COUNT(*) FROM sighting_flags f WHERE f.sighting_id = s.id) < ?
+         AND NOT EXISTS (
+           SELECT 1 FROM sighting_flags f WHERE f.sighting_id = s.id AND f.email = ?
+         )
+       ORDER BY s.at DESC`
+    )
+    .all(dayAgo, FLAG_LIMIT, email);
   return json(res, 200, {
     sightings: rows.map((r) => ({
       id: r.id,
@@ -201,6 +214,39 @@ async function createSighting(req, res, email) {
   return json(res, 201, {
     sighting: { id, stopId, at: now, by: 'sen' },
   });
+}
+
+async function flagSighting(req, res, email) {
+  const body = await readJson(req);
+  const sightingId = typeof body.sightingId === 'string' ? body.sightingId : '';
+  const sighting = db.prepare('SELECT email FROM sightings WHERE id = ?').get(sightingId);
+  if (!sighting) return fail(res, 404, 'Bu bildirim artık yok.');
+  if (sighting.email === email) return fail(res, 403, 'Kendi bildirimini şikayet edemezsin.');
+
+  // Aynı kişinin ikinci şikayeti sayılmaz (birincil anahtar).
+  db.prepare(
+    'INSERT OR IGNORE INTO sighting_flags (sighting_id, email, at) VALUES (?, ?, ?)'
+  ).run(sightingId, email, Date.now());
+  return json(res, 200, { ok: true });
+}
+
+function deleteAccount(res, email) {
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM sighting_flags WHERE email = ?').run(email);
+    db.prepare(
+      'DELETE FROM sighting_flags WHERE sighting_id IN (SELECT id FROM sightings WHERE email = ?)'
+    ).run(email);
+    db.prepare('DELETE FROM sightings WHERE email = ?').run(email);
+    db.prepare('DELETE FROM push_tokens WHERE email = ?').run(email);
+    db.prepare('DELETE FROM codes WHERE email = ?').run(email);
+    db.prepare('DELETE FROM sessions WHERE email = ?').run(email);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  return json(res, 200, { ok: true });
 }
 
 async function registerPush(req, res, email) {
@@ -245,8 +291,10 @@ const server = createServer(async (req, res) => {
     const email = authenticate(req);
     if (!email) return fail(res, 401, 'Oturumun sona ermiş. Tekrar giriş yap.');
 
-    if (route === 'GET /sightings') return listSightings(res);
+    if (route === 'GET /sightings') return listSightings(res, email);
     if (route === 'POST /sightings') return await createSighting(req, res, email);
+    if (route === 'POST /sightings/flag') return await flagSighting(req, res, email);
+    if (route === 'DELETE /account') return deleteAccount(res, email);
     if (route === 'POST /push/register') return await registerPush(req, res, email);
     if (route === 'POST /push/unregister') return await unregisterPush(req, res, email);
 

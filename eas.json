@@ -17,7 +17,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.ringnerede.example"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE_REF.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "SUPABASE_ANON_VEYA_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_OTP_LENGTH": "6"
       }
     },
     "production": {
@@ -26,7 +28,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.ringnerede.example"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE_REF.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "SUPABASE_ANON_VEYA_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_OTP_LENGTH": "6"
       }
     }
   },

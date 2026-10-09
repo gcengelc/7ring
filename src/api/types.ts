@@ -19,6 +19,10 @@ export interface RingApi {
   fetchSightings(token: string): Promise<Sighting[]>;
   /** Yeni bildirim gönderir, sunucunun kaydettiği hâlini döner. */
   report(token: string, stopId: string): Promise<Sighting>;
+  /** Başkasının bildirimini "yanlış" diye şikayet eder. */
+  flagSighting(token: string, sightingId: string): Promise<void>;
+  /** Hesabı ve tüm verisini kalıcı olarak siler. */
+  deleteAccount(token: string): Promise<void>;
   /** Push jetonunu ve bildirim tercihlerini kaydeder. */
   registerPushToken(
     token: string,

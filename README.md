@@ -218,8 +218,9 @@ Durak noktalarını ve renklerini uygulama görselin üstüne kendisi çizer;
 ### 3. Arka uç adresi
 
 Supabase kullanılıyorsa `eas.json` içindeki `preview` ve `production`
-profillerine `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-ekleyin. Node sunucusu kullanılıyorsa `EXPO_PUBLIC_API_BASE_URL` değerlerini
+profillerinde `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+yer tutucularını (`PROJE_REF`, `SUPABASE_ANON_VEYA_PUBLISHABLE_KEY`) kendi
+değerlerinizle değiştirin. Node sunucusu kullanılıyorsa `EXPO_PUBLIC_API_BASE_URL` değerlerini
 kendi sunucunuzla değiştirin.
 
 ### 4. SMTP
@@ -299,11 +300,46 @@ eas submit --platform ios
 - `usesNonExemptEncryption: false` ayarlandı (uygulama yalnızca standart HTTPS
   kullanıyor)
 
+### Yasal sayfalar ve mağaza metinleri
+
+- `docs/privacy.html` ve `docs/account-deletion.html`: gizlilik politikası ve
+  hesap silme sayfası. GitHub'da **Settings → Pages → Branch: main, /docs**
+  ile yayınlanır; adresler `src/data/legal.ts` içindedir (profildeki
+  “Gizlilik politikası” bağlantısı da buraya gider). İki sayfadaki
+  `DESTEK_EPOSTA` yer tutucusunu gerçek destek adresinizle değiştirin.
+- `store/listing.md`: açıklamalar, App Privacy / Veri güvenliği cevapları,
+  inceleme notu şablonu ve yayın kontrol listesi.
+
+Gizlilik sayfası konumun cihazdan çıkmadığını ve bildirimlerin 24 saat sonra
+silindiğini söyler; bu davranışları değiştirirseniz sayfayı da güncelleyin.
+
+### Şikayet edilen bildirimleri gözden geçirme (Supabase)
+
+```sql
+select id, stop_id, by_name, at, flag_count
+from public.sightings where flag_count > 0 order by flag_count desc, at desc;
+```
+
 ### Sürüm numaraları
 
 `eas.json` içinde `autoIncrement` açık — `versionCode` ve `buildNumber` her
 üretim derlemesinde otomatik artar. Kullanıcıya görünen sürümü (`version`)
 `app.json` içinden elle yükseltin.
+
+---
+
+## Hesap silme ve şikayet
+
+Mağaza kuralları gereği profilde **Hesabımı sil**, durak ekranında başkasının
+bildiriminde **Yanlış** (şikayet) vardır. Üç arka uçta da aynı davranır:
+
+- Hesap silinince kullanıcının bildirimleri, push jetonları ve şikayetleri de
+  silinir (Supabase: `delete_my_account()`, Node: `DELETE /account`).
+- Şikayet eden kişi o bildirimi bir daha görmez; **3 farklı kişi** şikayet
+  ederse bildirim herkesten gizlenir, satır inceleme için veritabanında kalır
+  (Supabase: `flag_sighting()` + `private.flag_limit()`, Node: `POST /sightings/flag`
+  + `FLAG_LIMIT`). Kendi bildirimini şikayet etmek ve aynı bildirimi iki kez
+  saymak engellidir.
 
 ---
 

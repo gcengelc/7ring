@@ -94,6 +94,19 @@ export class SupabaseApi implements RingApi {
     return { id: row.id, stopId: row.stop_id, at: Date.parse(row.at), by: 'sen' };
   }
 
+  async flagSighting(_token: string, sightingId: string): Promise<void> {
+    await this.requireSession();
+    const { error } = await this.client.rpc('flag_sighting', { p_sighting_id: sightingId });
+    if (error) throw toApiError(error);
+  }
+
+  async deleteAccount(): Promise<void> {
+    await this.requireSession();
+    const { error } = await this.client.rpc('delete_my_account');
+    if (error) throw toApiError(error);
+    await this.client.auth.signOut({ scope: 'local' }).catch(() => undefined);
+  }
+
   async registerPushToken(
     _token: string,
     pushToken: string,

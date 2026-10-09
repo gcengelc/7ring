@@ -66,6 +66,14 @@ export class HttpApi implements RingApi {
     return data.sighting;
   }
 
+  flagSighting(token: string, sightingId: string): Promise<void> {
+    return this.request('/sightings/flag', { method: 'POST', body: { sightingId }, token });
+  }
+
+  deleteAccount(token: string): Promise<void> {
+    return this.request('/account', { method: 'DELETE', token });
+  }
+
   registerPushToken(
     token: string,
     pushToken: string,
