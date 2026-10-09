@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiError } from '@/api';
@@ -17,7 +17,7 @@ import type { Visit } from '@/types';
 export default function StopDetail() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { statusFor, report, now, isMine } = useApp();
+  const { statusFor, report, flagSighting, now, isMine } = useApp();
 
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState('');
@@ -37,6 +37,28 @@ export default function StopDetail() {
         </Text>
         <Button label="Geri dön" tone="outline" onPress={() => router.back()} />
       </View>
+    );
+  }
+
+  function confirmFlag(sightingId: string) {
+    Alert.alert(
+      'Bu bildirim yanlış mı?',
+      'Şikayet ettiğin bildirim senin listenden kalkar. Birkaç kişi şikayet ederse herkesten gizlenir.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Yanlış bildirim',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await flagSighting(sightingId);
+              flash('Şikayetin alındı · teşekkürler');
+            } catch (err) {
+              flash(err instanceof ApiError ? err.message : 'Şikayet gönderilemedi.');
+            }
+          },
+        },
+      ]
     );
   }
 
@@ -112,6 +134,19 @@ export default function StopDetail() {
                     {s.pending ? ' · gönderiliyor' : ''}
                   </Text>
                 </View>
+                {!isMine(s) && !s.pending ? (
+                  <Pressable
+                    onPress={() => confirmFlag(s.id)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${formatTime(s.at)} bildirimini yanlış diye şikayet et`}
+                    style={({ pressed }) => [styles.flag, { opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <Text variant="meta" style={styles.flagLabel}>
+                      Yanlış
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             );
           })
@@ -167,6 +202,8 @@ const styles = StyleSheet.create({
   rail: { width: 12, alignItems: 'center', paddingTop: 6 },
   railLine: { width: 1, flex: 1, minHeight: 26, backgroundColor: colors.hairline },
   entryBody: { paddingBottom: 6, flex: 1 },
+  flag: { alignSelf: 'flex-start', paddingVertical: 2, paddingHorizontal: 8 },
+  flagLabel: { fontSize: 12.5, color: colors.muted },
   entryTime: { fontSize: 15.5 },
   entryBy: { marginTop: 2, fontSize: 13, color: colors.muted },
 });

@@ -37,6 +37,13 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS sightings_at ON sightings (at DESC);
 
+  CREATE TABLE IF NOT EXISTS sighting_flags (
+    sighting_id TEXT NOT NULL,
+    email       TEXT NOT NULL,
+    at          INTEGER NOT NULL,
+    PRIMARY KEY (sighting_id, email)
+  );
+
   CREATE TABLE IF NOT EXISTS push_tokens (
     push_token  TEXT PRIMARY KEY,
     email       TEXT NOT NULL,
@@ -51,4 +58,5 @@ export function pruneOldRows(now = Date.now()) {
   const dayAgo = now - 24 * 60 * 60 * 1000;
   db.prepare('DELETE FROM sightings WHERE at < ?').run(dayAgo);
   db.prepare('DELETE FROM codes WHERE expires_at < ?').run(now);
+  db.prepare('DELETE FROM sighting_flags WHERE sighting_id NOT IN (SELECT id FROM sightings)').run();
 }

@@ -56,6 +56,10 @@ interface AppValue {
   verifyCode(code: string): Promise<void>;
   signOut(): Promise<void>;
   report(stopId: string): Promise<void>;
+  /** Başkasının bildirimini yanlış diye şikayet eder; bildirim listeden kalkar. */
+  flagSighting(sightingId: string): Promise<void>;
+  /** Hesabı ve verisini kalıcı siler, ardından oturumu kapatır. */
+  deleteAccount(): Promise<void>;
   refresh(): Promise<void>;
   setSetting(key: keyof Settings, value: boolean): Promise<void>;
 }
@@ -304,6 +308,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [session]
   );
 
+  const flagSighting = useCallback(
+    async (sightingId: string) => {
+      if (!session) throw new ApiError('Şikayet için giriş yapmalısın.');
+      await api.flagSighting(session.token, sightingId);
+      setSightings((prev) => prev.filter((s) => s.id !== sightingId));
+    },
+    [session]
+  );
+
+  const deleteAccount = useCallback(async () => {
+    if (!session) throw new ApiError('Oturumun sona ermiş. Tekrar giriş yap.');
+    await api.deleteAccount(session.token);
+    // Hesap gitti; yerel oturumu ve push kaydını temizle.
+    await signOut();
+  }, [session, signOut]);
+
   const setSetting = useCallback(async (key: keyof Settings, value: boolean) => {
     setSettings((prev) => {
       const next = { ...prev, [key]: value };
@@ -330,6 +350,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       verifyCode,
       signOut,
       report,
+      flagSighting,
+      deleteAccount,
       refresh,
       setSetting,
     }),
@@ -350,6 +372,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       verifyCode,
       signOut,
       report,
+      flagSighting,
+      deleteAccount,
       refresh,
       setSetting,
     ]

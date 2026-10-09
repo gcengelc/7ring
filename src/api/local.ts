@@ -71,6 +71,16 @@ export class LocalApi implements RingApi {
     return sighting;
   }
 
+  async flagSighting(_token: string, sightingId: string): Promise<void> {
+    const raw = await AsyncStorage.getItem(KEY);
+    const current = raw ? (JSON.parse(raw) as Sighting[]) : [];
+    await AsyncStorage.setItem(KEY, JSON.stringify(current.filter((s) => s.id !== sightingId)));
+  }
+
+  async deleteAccount(): Promise<void> {
+    await AsyncStorage.removeItem(KEY);
+  }
+
   async registerPushToken(): Promise<void> {
     // Cihaz-içi modda gönderecek sunucu yok.
   }

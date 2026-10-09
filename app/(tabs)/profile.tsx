@@ -1,8 +1,8 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { isDemoMode } from '@/api';
+import { ApiError, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
 import { hasCoordinates } from '@/data/stops';
@@ -29,7 +29,34 @@ const OPTIONS: Option[] = [
 
 export default function Profile() {
   const insets = useSafeAreaInsets();
-  const { session, myReports, settings, setSetting, signOut } = useApp();
+  const { session, myReports, settings, setSetting, signOut, deleteAccount } = useApp();
+  const [deleting, setDeleting] = useState(false);
+
+  function confirmDelete() {
+    Alert.alert(
+      'Hesabın silinsin mi?',
+      'Hesabın, bildirimlerin ve bildirim ayarların kalıcı olarak silinir. Bu işlem geri alınamaz.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Hesabı sil',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteAccount();
+            } catch (err) {
+              setDeleting(false);
+              Alert.alert(
+                'Hesap silinemedi',
+                err instanceof ApiError ? err.message : 'Birazdan tekrar dene.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }
 
   return (
     <ScrollView
@@ -114,6 +141,14 @@ export default function Profile() {
       ) : null}
 
       <Button label="Çıkış yap" tone="outline" onPress={signOut} style={styles.signOut} />
+      <Button
+        label="Hesabımı sil"
+        tone="danger"
+        loading={deleting}
+        onPress={confirmDelete}
+        style={styles.deleteAccount}
+        accessibilityHint="Hesabını ve tüm verini kalıcı olarak siler"
+      />
     </ScrollView>
   );
 }
@@ -156,4 +191,5 @@ const styles = StyleSheet.create({
 
   demoNote: { marginTop: 16, color: colors.muted, lineHeight: 18 },
   signOut: { marginTop: 16 },
+  deleteAccount: { marginTop: 12 },
 });
