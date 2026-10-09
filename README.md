@@ -1,6 +1,6 @@
 # 7Ring
 
-Yeditepe kampüs ringini öğrenci bildirimleriyle takip eden mobil uygulama.
+Kampüs ringini öğrenci bildirimleriyle takip eden mobil uygulama.
 Ringi gören öğrenci durağı bildirir, herkes ringin en son nerede görüldüğünü
 anında görür.
 
@@ -255,9 +255,13 @@ bildirimleri bu kimlik olmadan çalışmaz.
 
 ### 6. Kurumsal onay
 
-Uygulama Yeditepe adını ve öğrenci e-posta alan adını kullanıyor. Her iki mağaza
-da bir kuruma ait isim/marka kullanımında yetki belgesi isteyebilir. Yayına
-çıkmadan önce üniversiteden yazılı izin alın.
+Girişe yalnızca belirli bir e-posta alan adı kabul edilir (`MAIL_DOMAIN`,
+`src/data/stops.ts`; Supabase'te `private.mail_domain()`). Bu alan adı arayüzde,
+mağaza metinlerinde ve gizlilik sayfasında **gösterilmez**; reddedilen adres
+“Bu e-posta adresiyle giriş yapılamıyor.” mesajını alır. Uygulama adı ve
+mağaza metinleri de kurum adı içermez. Yine de mağaza inceleyicisine kısıtı
+**inceleme notunda açıkça yazın** (`store/listing.md`); gizlemek reddedilme
+sebebidir. Kroki ve durak adlarının kullanım hakkını ayrıca düşünün.
 
 ---
 

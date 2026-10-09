@@ -1,7 +1,7 @@
 import type { Stop } from '@/types';
 
 /**
- * Yeditepe kampüs ringinin tek hattı.
+ * Kampüs ringinin tek hattı.
  *
  * Dizi sırası Duraklar sekmesindeki listeleme sırasıdır. Krokideki konumlar
  * elle eşleştirildiği için bu sıra artık güzergâh sırasını yansıtmıyor;
@@ -43,5 +43,5 @@ export const stopById = (id: string): Stop | undefined => STOPS.find((s) => s.id
 /** Konuma dayalı özellikler ancak her durağın koordinatı girildiğinde açılır. */
 export const hasCoordinates = STOPS.every((s) => s.coords !== null);
 
-/** Öğrenci e-postası alan adı. */
+/** Giriş için kabul edilen e-posta alan adı. Arayüzde gösterilmez. */
 export const MAIL_DOMAIN = '@std.yeditepe.edu.tr';

@@ -30,11 +30,11 @@ Ring Nerede, kampüs ringinin şu an hangi durakta olduğunu öğrencilerin kend
 • Hat şemasında tüm durakları renk kodlu tazeliğiyle izle.
 • İstersen yeni ring bildirimlerinde push al.
 • Yanlış bir bildirim gördüysen “Yanlış” ile şikayet et; birkaç şikayet alan bildirim herkesten gizlenir.
-• Giriş yalnızca öğrenci e-postasıyla, şifresiz, e-postana gelen kodla yapılır.
+• Giriş şifresizdir: e-postana gelen kodla yapılır.
 
 Ring Nerede bağımsız bir öğrenci projesidir; üniversitenin resmî uygulaması değildir.
 
-**Anahtar kelimeler (App Store, ≤100):** ring,kampüs,otobüs,servis,yeditepe,durak,öğrenci,ulaşım
+**Anahtar kelimeler (App Store, ≤100):** ring,kampüs,otobüs,servis,durak,öğrenci,ulaşım
 
 **Yenilikler (1.0.0):** İlk sürüm.
 

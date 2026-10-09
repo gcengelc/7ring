@@ -104,7 +104,7 @@ function agoLabel(minutes) {
 async function requestCode(req, res) {
   const body = await readJson(req);
   const email = normalizeEmail(body.email);
-  if (!email) return fail(res, 400, 'Geçerli bir öğrenci e-postası gir.');
+  if (!email) return fail(res, 400, 'Bu e-posta adresiyle giriş yapılamıyor.');
 
   const now = Date.now();
   const existing = db.prepare('SELECT sent_at FROM codes WHERE email = ?').get(email);

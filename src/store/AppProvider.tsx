@@ -14,7 +14,7 @@ import { ApiError, api, isDemoMode } from '@/api';
 import { STOPS, hasCoordinates, stopById } from '@/data/stops';
 import { RECENT_WINDOW_MIN, freshness, minutesSince } from '@/lib/freshness';
 import { groupVisits } from '@/lib/visits';
-import { distanceMeters, normalizeLocalPart, toEmail } from '@/lib/format';
+import { EMAIL_REJECTED, distanceMeters, isAllowedEmail, normalizeEmail } from '@/lib/format';
 import { registerForPush } from '@/lib/push';
 import {
   DEFAULT_SETTINGS,
@@ -52,7 +52,7 @@ interface AppValue {
   syncError: string | null;
   refreshing: boolean;
   statusFor(stopId: string): StopStatus | undefined;
-  requestCode(localPart: string): Promise<void>;
+  requestCode(email: string): Promise<void>;
   verifyCode(code: string): Promise<void>;
   signOut(): Promise<void>;
   report(stopId: string): Promise<void>;
@@ -252,8 +252,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   /* ── Eylemler ──────────────────────────────────────────────────── */
-  const requestCode = useCallback(async (localPart: string) => {
-    const email = toEmail(normalizeLocalPart(localPart));
+  const requestCode = useCallback(async (raw: string) => {
+    const email = normalizeEmail(raw);
+    if (!isAllowedEmail(email)) throw new ApiError(EMAIL_REJECTED);
     await api.requestCode(email);
     pendingEmail.current = email;
   }, []);
