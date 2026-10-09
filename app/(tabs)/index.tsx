@@ -7,8 +7,10 @@ import { Dot } from '@/components/Dot';
 import { RowGroup, StopRow } from '@/components/StopRow';
 import { Text } from '@/components/Text';
 import { formatTime } from '@/lib/format';
+import { RECENT_WINDOW_MIN } from '@/lib/freshness';
 import { useApp } from '@/store/AppProvider';
 import { colors, fonts, freshnessScale, radius, spacing } from '@/theme';
+import type { Visit } from '@/types';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -46,11 +48,11 @@ export default function Home() {
           </Text>
           <View style={styles.heroDivider} />
           <Text style={styles.heroCount}>
-            {Math.max(1, top.recentCount || top.sightings.length)} öğrenci bildirdi
+            {top.lastVisit ? top.lastVisit.reporters : 0} öğrenci bildirdi
           </Text>
         </View>
         <View style={styles.heroRule} />
-        <Text style={styles.heroHint}>{hintFor(top.recentCount, top.minutesAgo)}</Text>
+        <Text style={styles.heroHint}>{hintFor(top.lastVisit, top.minutesAgo)}</Text>
       </View>
 
       {syncError ? <Text style={styles.syncError}>{syncError}</Text> : null}
@@ -96,14 +98,17 @@ export default function Home() {
   );
 }
 
-function hintFor(recentCount: number, minutesAgo: number | null): string {
-  if (minutesAgo == null) {
+function hintFor(lastVisit: Visit | null, minutesAgo: number | null): string {
+  if (lastVisit == null || minutesAgo == null) {
     return 'Henüz kimse bildirim atmadı. Ringi görürsen ilk sen bildir.';
   }
-  if (recentCount > 1) {
-    return `${recentCount} öğrenci son 10 dakikada burada gördü. Yakınsan yetişebilirsin.`;
+  if (!lastVisit.confirmed) {
+    return 'Tek bildirim var, henüz doğrulanmadı. Sen de görürsen onayla.';
   }
-  return 'Tek bildirim var. Sen de görürsen onayla, bilgi güçlensin.';
+  if (minutesAgo >= RECENT_WINDOW_MIN) {
+    return `${lastVisit.reporters} öğrenci bildirmişti ama bilgi eski; ring ilerlemiş olabilir.`;
+  }
+  return `${lastVisit.reporters} öğrenci aynı anda gördü, doğrulandı. Yakınsan yetişebilirsin.`;
 }
 
 const styles = StyleSheet.create({

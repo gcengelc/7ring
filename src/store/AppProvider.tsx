@@ -13,6 +13,7 @@ import { AppState } from 'react-native';
 import { ApiError, api, isDemoMode } from '@/api';
 import { STOPS, hasCoordinates, stopById } from '@/data/stops';
 import { RECENT_WINDOW_MIN, freshness, minutesSince } from '@/lib/freshness';
+import { groupVisits } from '@/lib/visits';
 import { distanceMeters, normalizeLocalPart, toEmail } from '@/lib/format';
 import { registerForPush } from '@/lib/push';
 import {
@@ -172,46 +173,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [settings.nearbyOnly]);
 
-  /* ── Türetilmiş durum ──────────────────────────────────────────── */
-  const statuses = useMemo<StopStatus[]>(() => {
-    return STOPS.map((stop) => {
-      const own = sightings
-        .filter((s) => s.stopId === stop.id)
-        .sort((a, b) => b.at - a.at);
-      const newest = own[0];
-      const minutesAgo = newest ? minutesSince(newest.at, now) : null;
-      const recentCount = own.filter((s) => minutesSince(s.at, now) < RECENT_WINDOW_MIN).length;
-      const distance =
-        position && stop.coords ? distanceMeters(position, stop.coords) : null;
-      return {
-        stop,
-        sightings: own,
-        minutesAgo,
-        recentCount,
-        freshness: freshness(minutesAgo),
-        distance,
-      };
-    });
-  }, [sightings, now, position]);
-
-  const statusMap = useMemo(() => {
-    const map = new Map<string, StopStatus>();
-    statuses.forEach((s) => map.set(s.stop.id, s));
-    return map;
-  }, [statuses]);
-
-  /**
-   * Ringin nerede olduğu tahmini: önce son 10 dakikadaki bildirim sayısı
-   * (kalabalık onay tek bildirimden güvenilir), eşitlikte en taze bildirim.
-   */
-  const top = useMemo<StopStatus>(() => {
-    const ranked = [...statuses].sort((a, b) => {
-      if (b.recentCount !== a.recentCount) return b.recentCount - a.recentCount;
-      return (a.minutesAgo ?? Infinity) - (b.minutesAgo ?? Infinity);
-    });
-    return ranked[0] as StopStatus;
-  }, [statuses]);
-
   /**
    * Kendi bildirimlerimiz iki adla gelebilir: gönderim cevabında 'sen',
    * sunucudan çekilen listede e-postanın kısa adı. İkisi de bize aittir.
@@ -224,6 +185,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     [session]
   );
+
+  /* ── Türetilmiş durum ──────────────────────────────────────────── */
+  const statuses = useMemo<StopStatus[]>(() => {
+    return STOPS.map((stop) => {
+      const own = sightings
+        .filter((s) => s.stopId === stop.id)
+        .sort((a, b) => b.at - a.at);
+      const newest = own[0];
+      const minutesAgo = newest ? minutesSince(newest.at, now) : null;
+      const visits = groupVisits(own, (s) => (isMine(s) ? 'sen' : s.by));
+      const lastVisit = visits[0] ?? null;
+      const confirmedRecently = visits.some(
+        (v) => v.confirmed && minutesSince(v.end, now) < RECENT_WINDOW_MIN
+      );
+      const distance =
+        position && stop.coords ? distanceMeters(position, stop.coords) : null;
+      return {
+        stop,
+        sightings: own,
+        minutesAgo,
+        lastVisit,
+        confirmedRecently,
+        freshness: freshness(minutesAgo),
+        distance,
+      };
+    });
+  }, [sightings, now, position, isMine]);
+
+  const statusMap = useMemo(() => {
+    const map = new Map<string, StopStatus>();
+    statuses.forEach((s) => map.set(s.stop.id, s));
+    return map;
+  }, [statuses]);
+
+  /**
+   * Ringin nerede olduğu tahmini: önce son 10 dakikada doğrulanmış (birden
+   * fazla öğrencinin bildirdiği) ziyareti olan durak, eşitlikte en taze bildirim.
+   * Aynı kişinin tekrarı ya da peş peşe gelen bildirimler onay sayılmaz.
+   */
+  const top = useMemo<StopStatus>(() => {
+    const ranked = [...statuses].sort((a, b) => {
+      if (a.confirmedRecently !== b.confirmedRecently) return a.confirmedRecently ? -1 : 1;
+      return (a.minutesAgo ?? Infinity) - (b.minutesAgo ?? Infinity);
+    });
+    return ranked[0] as StopStatus;
+  }, [statuses]);
 
   // Sayaç bellekte tutulmaz; listeden türetilir, böylece uygulama
   // kapanıp açıldığında da doğru kalır.

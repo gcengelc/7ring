@@ -24,6 +24,21 @@ export interface Sighting {
   pending?: boolean;
 }
 
+/**
+ * Bir durağa ringin tek bir uğrayışı. Art arda gelen bildirimler (bkz.
+ * src/lib/visits.ts) tek ziyarette toplanır; ringler ayırt edilemediği için
+ * "hangi ring" değil "ne zaman, kaç kişi" bilinir.
+ */
+export interface Visit {
+  /** İlk ve son bildirimin zamanı, epoch ms. `end` en yenisidir. */
+  start: number;
+  end: number;
+  /** Ziyareti bildiren farklı öğrenci sayısı. */
+  reporters: number;
+  /** Birden fazla farklı öğrenci bildirdiyse true. */
+  confirmed: boolean;
+}
+
 export type FreshnessLevel = 'none' | 'now' | 'recent' | 'fading' | 'stale' | 'old';
 
 export interface Freshness {
@@ -46,8 +61,13 @@ export interface StopStatus {
   sightings: Sighting[];
   /** Son bildirimin kaç dakika önce olduğu; hiç yoksa null. */
   minutesAgo: number | null;
-  /** Son 10 dakikadaki bildirim sayısı. */
-  recentCount: number;
+  /** En son ziyaret (art arda bildirimler tek ziyaret); hiç yoksa null. */
+  lastVisit: Visit | null;
+  /**
+   * Son 10 dakikada doğrulanmış, yani birden fazla öğrencinin bildirdiği
+   * bir ziyaret var mı. Sıralamada tek bildirimin önüne geçer.
+   */
+  confirmedRecently: boolean;
   freshness: Freshness;
   /** Kullanıcının konumuna metre cinsinden uzaklık; hesaplanamıyorsa null. */
   distance: number | null;

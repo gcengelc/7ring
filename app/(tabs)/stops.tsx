@@ -84,7 +84,9 @@ export default function Stops() {
 function subtitleFor(s: StopStatus): string {
   const distance = s.distance != null ? ` · ${formatDistance(s.distance)}` : '';
   if (s.minutesAgo == null) return `bugün bildirim yok${distance}`;
-  return `${s.freshness.phrase} · ${s.sightings.length} bildirim${distance}`;
+  const v = s.lastVisit;
+  const who = v ? `${v.reporters} öğrenci${v.confirmed ? '' : ' · doğrulanmadı'}` : '';
+  return `${s.freshness.phrase} · ${who}${distance}`;
 }
 
 const styles = StyleSheet.create({

@@ -12,6 +12,7 @@ import { freshness, minutesSince } from '@/lib/freshness';
 import { formatDistance, formatTime } from '@/lib/format';
 import { useApp } from '@/store/AppProvider';
 import { colors, fonts, spacing } from '@/theme';
+import type { Visit } from '@/types';
 
 export default function StopDetail() {
   const insets = useSafeAreaInsets();
@@ -74,7 +75,7 @@ export default function StopDetail() {
           {status.stop.name}
         </Text>
         <Text variant="body" style={styles.sub}>
-          {subtitleFor(status.minutesAgo, status.freshness.phrase, status.sightings.length,
+          {subtitleFor(status.minutesAgo, status.freshness.phrase, status.lastVisit,
             status.distance)}
         </Text>
       </View>
@@ -135,12 +136,15 @@ export default function StopDetail() {
 function subtitleFor(
   minutesAgo: number | null,
   phrase: string,
-  total: number,
+  lastVisit: Visit | null,
   distance: number | null
 ): string {
   const near = distance != null ? ` · ${formatDistance(distance)} uzakta` : '';
   if (minutesAgo == null) return `Bugün hiç bildirim yok${near}`;
-  return `${phrase} · toplam ${total} bildirim${near}`;
+  const who = lastVisit
+    ? `${lastVisit.reporters} öğrenci${lastVisit.confirmed ? ' doğruladı' : ' · doğrulanmadı'}`
+    : '';
+  return `${phrase} · ${who}${near}`;
 }
 
 const styles = StyleSheet.create({
