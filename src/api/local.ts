@@ -10,11 +10,13 @@ const KEY = 'ring.local.sightings';
 /**
  * Sunucu adresi tanımlı değilken devreye giren cihaz-içi uygulama.
  *
- * Mağaza sürümünde EXPO_PUBLIC_API_BASE_URL doludur ve bu sınıf hiç
- * kullanılmaz; amacı, backend ayağa kalkmadan da uygulamanın eksiksiz
+ * Mağaza sürümünde Supabase ya da sunucu adresi tanımlıdır ve bu sınıf
+ * hiç kullanılmaz; amacı, backend ayağa kalkmadan da uygulamanın eksiksiz
  * denenebilmesi. Bildirimler yalnızca o cihazda görünür.
  */
 export class LocalApi implements RingApi {
+  readonly codeLength = 4;
+
   /** Demo verisi: uygulama ilk açıldığında hattın makul bir anlık görüntüsü. */
   private static readonly SEED: { stopId: string; min: number; by: string }[] = [
     { stopId: 'meydan', min: 2, by: 'e.kaya' },
@@ -74,6 +76,8 @@ export class LocalApi implements RingApi {
   }
 
   async unregisterPushToken(): Promise<void> {}
+
+  async signOut(): Promise<void> {}
 
   private seed(): Sighting[] {
     const t0 = Date.now();

@@ -5,6 +5,8 @@ const TIMEOUT_MS = 12000;
 
 /** server/ klasöründeki servise konuşan gerçek istemci. */
 export class HttpApi implements RingApi {
+  readonly codeLength = 4;
+
   constructor(private readonly baseUrl: string) {}
 
   private async request<T>(
@@ -78,6 +80,10 @@ export class HttpApi implements RingApi {
 
   unregisterPushToken(token: string, pushToken: string): Promise<void> {
     return this.request('/push/unregister', { method: 'POST', body: { pushToken }, token });
+  }
+
+  async signOut(): Promise<void> {
+    // Sunucuda oturum kapatma ucu yok; jeton cihazdan silinince kullanılmaz olur.
   }
 }
 

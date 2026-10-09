@@ -6,7 +6,8 @@ anında görür.
 
 **Yığın:** React Native + Expo (SDK 57), TypeScript, expo-router.
 Tek kod tabanı hem App Store hem Google Play için derlenir.
-Sunucu tarafı Node 22+ üzerinde çalışan bağımsız bir servistir.
+Arka uç iki seçenekten biridir: **Supabase** (Auth + Postgres + Edge Function)
+ya da Node 22+ üzerinde çalışan bağımsız servis (`server/`).
 
 ---
 
@@ -17,11 +18,12 @@ npm install
 npx expo start
 ```
 
-Sunucu adresi tanımlı değilken uygulama **demo modunda** açılır: bildirimler
+Arka uç tanımlı değilken uygulama **demo modunda** açılır: bildirimler
 cihazda tutulur, 4 haneli herhangi bir kod girişi kabul eder. Her ekran bu
 modda denenebilir.
 
-Gerçek veriyle çalıştırmak için sunucuyu ayağa kaldırın:
+Gerçek veriyle çalıştırmak için ya Supabase'i bağlayın (aşağıda
+[Supabase](#supabase) bölümü) ya da Node sunucusunu ayağa kaldırın:
 
 ```bash
 cd server && npm install && npm start
@@ -35,6 +37,98 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:4000 npx expo start
 
 > Fiziksel cihazdan test ederken `localhost` yerine bilgisayarınızın yerel IP
 > adresini kullanın (`http://192.168.1.x:4000`).
+
+Hangi arka ucun kullanılacağı ortam değişkenlerinden seçilir
+(`src/api/index.ts`): Supabase değişkenleri doluysa **Supabase**, değilse
+`EXPO_PUBLIC_API_BASE_URL` doluysa **Node sunucusu**, ikisi de boşsa **demo**.
+
+---
+
+## Supabase
+
+Şema, kurallar ve push gönderimi `supabase/` klasöründedir:
+
+```
+supabase/
+  config.toml                           yerel geliştirme ayarları (OTP 6 hane)
+  migrations/20260928000000_ring_schema.sql
+                                        tablolar, RLS, RPC'ler, tetikleyici, pg_cron
+  functions/notify-sighting/            yeni bildirimde Expo push gönderir
+  templates/otp.html                    giriş kodu e-posta şablonu
+```
+
+| Node sunucusu | Supabase karşılığı |
+|---|---|
+| `codes`, `sessions`, SMTP | Supabase Auth — e-posta OTP |
+| `POST /sightings` | `report_sighting(p_stop_id)` RPC — durak kontrolü, 60 sn bekleme |
+| `GET /sightings` | `sightings` tablosu, RLS ile son 24 saat |
+| `POST /push/register` · `unregister` | `register_push_token` · `unregister_push_token` RPC |
+| `push.js` | `notify-sighting` edge function (tetikleyici + pg_net) |
+| `pruneOldRows` | saatlik `pg_cron` işi |
+
+Öğrenci alan adı kısıtı veritabanında da uygulanır: `auth.users` üzerindeki
+tetikleyici başka alan adıyla hesap açılmasını engeller, RLS ve RPC'ler
+yalnızca öğrenci e-postasıyla giriş yapmış oturumlara izin verir. Alan adı
+`private.mail_domain()` içinde tanımlı; `src/data/stops.ts` ile aynı olmalı.
+
+### Kurulum (barındırılan proje)
+
+```bash
+npm install -g supabase
+supabase login
+supabase link --project-ref <proje-ref>
+supabase db push                                   # migration'ı uygular
+supabase functions deploy notify-sighting --no-verify-jwt
+supabase secrets set NOTIFY_SIGHTING_SECRET=<rastgele-uzun-bir-değer>
+```
+
+Tetikleyicinin edge function'ı çağırabilmesi için proje adresini ve aynı sırrı
+Vault'a yazın (SQL Editor):
+
+```sql
+select vault.create_secret('https://<proje-ref>.supabase.co', 'ring_project_url');
+select vault.create_secret('<NOTIFY_SIGHTING_SECRET ile aynı değer>', 'ring_notify_secret');
+```
+
+Bu iki kayıt yoksa bildirimler yine kaydedilir, yalnızca push gitmez.
+
+Panelde **Authentication** altında:
+
+- **Sign In / Providers → Email:** açık. *Email OTP Length* → `6`,
+  *Email OTP Expiration* → `600`.
+- **Emails → Templates:** *Confirm signup* ve *Magic Link* şablonlarını
+  `supabase/templates/otp.html` içeriğiyle değiştirin. Varsayılan şablonlar
+  bağlantı gönderir; uygulama ise `{{ .Token }}` kodunu bekler. Şablonlar
+  ancak özel SMTP tanımlıyken düzenlenebilir. Panel yerine betikle de
+  yazılabilir (erişim jetonu: Account → Access Tokens):
+  `SUPABASE_ACCESS_TOKEN=sbp_... node scripts/push-email-templates.mjs <proje-ref>`
+- **Emails → SMTP Settings:** kendi SMTP sunucunuzu tanımlayın. Supabase'in
+  yerleşik e-postası saatte birkaç iletiyle sınırlıdır, üretim için yetmez.
+
+### Uygulamayı bağlamak
+
+`.env.example` dosyasını `.env.local` olarak kopyalayıp doldurun ya da
+`eas.json` profillerine ekleyin:
+
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://<proje-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon ya da publishable anahtar>
+EXPO_PUBLIC_SUPABASE_OTP_LENGTH=6
+```
+
+Anon anahtarı istemcide durması için tasarlanmıştır; erişimi RLS ve RPC'ler
+sınırlar. **Service role anahtarını uygulamaya koymayın.**
+
+### Yerel geliştirme
+
+```bash
+supabase start          # Docker gerekir; migration otomatik uygulanır
+supabase functions serve notify-sighting --env-file supabase/functions/.env
+```
+
+Yerelde giden e-postalar (giriş kodları) http://localhost:54324 adresine düşer.
+Uygulamayı `EXPO_PUBLIC_SUPABASE_URL=http://<yerel-ip>:54321` ve
+`supabase status` çıktısındaki anon anahtarla başlatın.
 
 ---
 
@@ -55,10 +149,11 @@ src/
   lib/freshness.ts       bildirim yaşı → renk ve metin
   lib/format.ts          saat, mesafe, e-posta normalleştirme
   lib/push.ts            push izni ve jeton kaydı
-  api/                   RingApi arayüzü + HTTP ve cihaz-içi uygulamaları
+  api/                   RingApi arayüzü + Supabase, HTTP ve cihaz-içi uygulamaları
   store/AppProvider.tsx  oturum, bildirimler, ayarlar, türetilmiş durum
   components/            Text, Button, Dot, StopRow, Toast, ConfirmSheet
 
+supabase/                Supabase şeması, edge function, e-posta şablonu
 server/                  Node servisi (node:http + node:sqlite, çatı yok)
 scripts/make-assets.mjs  ikon/splash üretimi — npm run icons
 ```
@@ -66,8 +161,8 @@ scripts/make-assets.mjs  ikon/splash üretimi — npm run icons
 ### Mimarideki iki karar
 
 **Tek API arayüzü.** Ekranlar `api.report(...)` çağırır; arkasında sunucu mu
-yoksa cihaz-içi demo mu olduğunu bilmez (`src/api/index.ts`). Backend
-değiştirilecekse yalnızca `HttpApi` değişir.
+Supabase mi, cihaz-içi demo mu olduğunu bilmez (`src/api/index.ts`). Backend
+değiştirilecekse yalnızca ilgili `RingApi` uygulaması değişir.
 
 **Tazelik = renk.** Bir bildirimin yaşı tek bir yerde (`lib/freshness.ts`)
 renge, duruma ve metne çevrilir. Ana ekrandaki nokta, liste satırı, harita pini
@@ -120,14 +215,17 @@ Durak noktalarını ve renklerini uygulama görselin üstüne kendisi çizer;
 çiziminize nokta koymayın. Etiketler kenar konumuna göre otomatik yerleşir
 (sol kenar → sağda, sağ kenar → solda, üst/alt orta → dikey).
 
-### 3. Sunucu adresi
+### 3. Arka uç adresi
 
-`eas.json` içindeki `EXPO_PUBLIC_API_BASE_URL` değerlerini kendi sunucunuzla
-değiştirin (`preview` ve `production` profillerinde).
+Supabase kullanılıyorsa `eas.json` içindeki `preview` ve `production`
+profillerine `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+ekleyin. Node sunucusu kullanılıyorsa `EXPO_PUBLIC_API_BASE_URL` değerlerini
+kendi sunucunuzla değiştirin.
 
 ### 4. SMTP
 
-Doğrulama kodları e-postayla gider. `server/` için ortam değişkenleri:
+Doğrulama kodları e-postayla gider. Supabase'te SMTP panelden tanımlanır
+(yukarıda). `server/` için ortam değişkenleri:
 
 ```bash
 SMTP_HOST=smtp.example.com
@@ -219,7 +317,11 @@ eas submit --platform ios
 - **Kroki üzerindeki pin → durak eşleşmesi tahmin.** Krokide isim yoktu;
   pinler konumlarına göre dağıtıldı ve 10 pinden biri boşta kaldı
   (`UNASSIGNED_PIN`). Yanlış olanı düzeltmek `stops.ts` içinde tek satır.
-- **Oturumlar süresiz.** Sunucuda jeton sona erme süresi yok; eklenmesi
+- **Supabase oturumu AsyncStorage'da.** Supabase istemcisi erişim ve yenileme
+  jetonunu AsyncStorage'da tutar (Keychain/Keystore değil); SecureStore'un
+  2 KB sınırı Supabase oturumu için dar kalıyor. Node sunucusunun jetonu
+  SecureStore'da kalmaya devam ediyor.
+- **Oturumlar süresiz (Node sunucusu).** Sunucuda jeton sona erme süresi yok; eklenmesi
   önerilir (`sessions.created_at` bu iş için hazır duruyor).
 
 ---
