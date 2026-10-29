@@ -17,8 +17,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE_REF.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "SUPABASE_ANON_VEYA_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://flosmdchshljrtdbqbua.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_4yP-WpXI4iytXZmET8rq4Q_6bmPqhEG",
         "EXPO_PUBLIC_SUPABASE_OTP_LENGTH": "6"
       }
     },
@@ -28,8 +28,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://PROJE_REF.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "SUPABASE_ANON_VEYA_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://flosmdchshljrtdbqbua.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_4yP-WpXI4iytXZmET8rq4Q_6bmPqhEG",
         "EXPO_PUBLIC_SUPABASE_OTP_LENGTH": "6"
       }
     }
@@ -41,9 +41,7 @@
         "track": "internal"
       },
       "ios": {
-        "appleId": "APPLE_ID_MAILINIZ",
-        "ascAppId": "APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "APPLE_TEAM_ID"
+        "appleId": "grkemcnglc@gmail.com"
       }
     }
   }
