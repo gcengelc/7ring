@@ -34,7 +34,9 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
@@ -70,8 +72,10 @@
     "extra": {
       "apiBaseUrl": "",
       "eas": {
-        "projectId": ""
-      }
-    }
+        "projectId": "e313cead-7636-4012-94ef-7211fcb8c385"
+      },
+      "router": {}
+    },
+    "owner": "yeditvepering"
   }
 }
