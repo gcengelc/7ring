@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { STOPS } from '@/data/stops';
-import { EMAIL_REJECTED, isAllowedEmail, normalizeEmail } from '@/lib/format';
+import { EMAIL_REJECTED, isAllowedEmail, isReviewerEmail, normalizeEmail } from '@/lib/format';
 import type { Sighting } from '@/types';
 import { ApiError, type RingApi } from './types';
 
@@ -34,7 +34,13 @@ export class LocalApi implements RingApi {
   ];
 
   async requestCode(email: string): Promise<void> {
-    if (!isAllowedEmail(normalizeEmail(email))) throw new ApiError(EMAIL_REJECTED);
+    const value = normalizeEmail(email);
+    if (!isAllowedEmail(value) || isReviewerEmail(value)) throw new ApiError(EMAIL_REJECTED);
+  }
+
+  async signInReviewer(email: string): Promise<{ token: string }> {
+    if (!isReviewerEmail(email)) throw new ApiError(EMAIL_REJECTED);
+    return { token: 'local-demo-token' };
   }
 
   async verifyCode(_email: string, code: string): Promise<{ token: string }> {

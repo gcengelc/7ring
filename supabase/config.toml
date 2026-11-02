@@ -51,3 +51,6 @@ content_path = "./supabase/templates/otp.html"
 [functions.notify-sighting]
 # Tetikleyiciden paylaşılan sırla çağrılır; kullanıcı JWT'si taşımaz.
 verify_jwt = false
+
+[functions.reviewer-login]
+verify_jwt = true

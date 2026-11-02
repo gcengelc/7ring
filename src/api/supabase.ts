@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 
+import { EMAIL_REJECTED, isReviewerEmail } from '@/lib/format';
 import type { Sighting } from '@/types';
 import { ApiError, type RingApi } from './types';
 
@@ -49,6 +50,7 @@ export class SupabaseApi implements RingApi {
   }
 
   async requestCode(email: string): Promise<void> {
+    if (isReviewerEmail(email)) throw new ApiError(EMAIL_REJECTED);
     const { error } = await this.client.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
@@ -67,6 +69,26 @@ export class SupabaseApi implements RingApi {
       throw new ApiError('Kod hatalı ya da süresi dolmuş.', error?.status);
     }
     return { token: data.session.access_token };
+  }
+
+  async signInReviewer(email: string): Promise<{ token: string }> {
+    if (!isReviewerEmail(email)) throw new ApiError(EMAIL_REJECTED);
+    const { data, error } = await this.client.functions.invoke('reviewer-login', {
+      body: { email },
+    });
+    const tokenHash = (data as { token_hash?: string } | null)?.token_hash;
+    if (error || !tokenHash) throw new ApiError('Giriş yapılamadı. Tekrar dene.');
+    const { data: session, error: verifyError } = await this.client.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'magiclink',
+    });
+    if (verifyError || !session.session) {
+      if (verifyError && !verifyError.status) {
+        throw new ApiError('Sunucuya ulaşılamadı. Bağlantını kontrol et.');
+      }
+      throw new ApiError('Giriş yapılamadı. Tekrar dene.', verifyError?.status);
+    }
+    return { token: session.session.access_token };
   }
 
   async fetchSightings(): Promise<Sighting[]> {
