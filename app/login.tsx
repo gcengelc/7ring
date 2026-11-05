@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -79,9 +80,11 @@ export default function Login() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>LOGO</Text>
-        </View>
+        <Image
+          source={require('../assets/icon.png')}
+          style={styles.logo}
+          accessibilityLabel="Ring Nerede"
+        />
 
         <Text variant="display" style={styles.title}>
           Ring{'\n'}nerede?
@@ -173,19 +176,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.navy },
   content: { flexGrow: 1, paddingHorizontal: 30 },
   logo: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: colors.onNavy35,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    letterSpacing: 1.4,
-    color: colors.onNavy62,
+    width: 72,
+    height: 72,
+    borderRadius: 16,
   },
   title: { marginTop: 30, color: colors.onNavy },
   lede: { marginTop: 14, color: colors.onNavy62, maxWidth: 270 },
