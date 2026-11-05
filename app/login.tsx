@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiError, api, isDemoMode } from '@/api';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
-import { EMAIL_REJECTED, isAllowedEmail, normalizeEmail } from '@/lib/format';
+import { EMAIL_REJECTED, isAllowedEmail, isReviewerEmail, normalizeEmail } from '@/lib/format';
 import { useApp } from '@/store/AppProvider';
 import { colors, fonts, radius } from '@/theme';
 
@@ -20,7 +20,7 @@ type Step = 'mail' | 'code';
 
 export default function Login() {
   const insets = useSafeAreaInsets();
-  const { requestCode, verifyCode } = useApp();
+  const { requestCode, verifyCode, signInReviewer } = useApp();
 
   const [step, setStep] = useState<Step>('mail');
   const [email, setEmail] = useState('');
@@ -37,6 +37,10 @@ export default function Login() {
     setBusy(true);
     setError('');
     try {
+      if (isReviewerEmail(value)) {
+        await signInReviewer(value);
+        return;
+      }
       await requestCode(value);
       setEmail(value);
       setStep('code');

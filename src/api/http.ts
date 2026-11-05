@@ -52,6 +52,10 @@ export class HttpApi implements RingApi {
     return this.request('/auth/verify', { method: 'POST', body: { email, code } });
   }
 
+  signInReviewer(): Promise<{ token: string }> {
+    return Promise.reject(new ApiError('Bu sunucuda bu giriş yok.'));
+  }
+
   async fetchSightings(token: string): Promise<Sighting[]> {
     const data = await this.request<{ sightings: Sighting[] }>('/sightings', { token });
     return data.sightings;
