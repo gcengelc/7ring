@@ -14,14 +14,21 @@ export function formatDistance(meters: number): string {
 export const normalizeEmail = (value: string): string =>
   value.trim().replace(/\s/g, '').toLocaleLowerCase('tr-TR');
 
+/** Apple incelemesi. Kod gönderilmez. Sunucudaki adresle aynı olmalı. */
+export const REVIEWER_EMAIL = '7ringbackup@gmail.com';
+
+export const isReviewerEmail = (email: string): boolean =>
+  normalizeEmail(email) === REVIEWER_EMAIL;
+
 /**
  * Giriş yapabilecek bir adres mi. Kabul edilen alan adı (MAIL_DOMAIN)
  * kullanıcıya hiçbir yerde gösterilmez; reddedilen adres de nedenini
  * açıklamayan genel bir mesaj alır. Asıl kontrol sunucuda da yapılır.
  */
 export const isAllowedEmail = (email: string): boolean =>
-  email.endsWith(MAIL_DOMAIN) &&
-  /^[a-z0-9._-]{3,}$/.test(email.slice(0, -MAIL_DOMAIN.length));
+  email === REVIEWER_EMAIL ||
+  (email.endsWith(MAIL_DOMAIN) &&
+    /^[a-z0-9._-]{3,}$/.test(email.slice(0, -MAIL_DOMAIN.length)));
 
 export const EMAIL_REJECTED = 'Bu e-posta adresiyle giriş yapılamıyor.';
 

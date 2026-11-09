@@ -17,7 +17,7 @@ major_version = 17
 enabled = true
 port = 54323
 
-[inbucket]
+[local_smtp]
 # Yerelde giden e-postalar buraya düşer: http://localhost:54324
 enabled = true
 port = 54324
@@ -31,7 +31,7 @@ enable_signup = true
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = true
+enabled = true
 enable_confirmations = false
 # Uygulama bu uzunlukta kod bekler: EXPO_PUBLIC_SUPABASE_OTP_LENGTH ile aynı olmalı.
 otp_length = 6
@@ -50,4 +50,9 @@ content_path = "./supabase/templates/otp.html"
 
 [functions.notify-sighting]
 # Tetikleyiciden paylaşılan sırla çağrılır; kullanıcı JWT'si taşımaz.
+verify_jwt = false
+
+[functions.reviewer-login]
+# Oturumsuz çağrılır; publishable key JWT değildir. Fonksiyon yalnızca
+# inceleme adresine jeton üretir.
 verify_jwt = false

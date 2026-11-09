@@ -14,7 +14,13 @@ import { ApiError, api, isDemoMode } from '@/api';
 import { STOPS, hasCoordinates, stopById } from '@/data/stops';
 import { RECENT_WINDOW_MIN, freshness, minutesSince } from '@/lib/freshness';
 import { groupVisits } from '@/lib/visits';
-import { EMAIL_REJECTED, distanceMeters, isAllowedEmail, normalizeEmail } from '@/lib/format';
+import {
+  EMAIL_REJECTED,
+  distanceMeters,
+  isAllowedEmail,
+  isReviewerEmail,
+  normalizeEmail,
+} from '@/lib/format';
 import { registerForPush } from '@/lib/push';
 import {
   DEFAULT_SETTINGS,
@@ -54,6 +60,7 @@ interface AppValue {
   statusFor(stopId: string): StopStatus | undefined;
   requestCode(email: string): Promise<void>;
   verifyCode(code: string): Promise<void>;
+  signInReviewer(email: string): Promise<void>;
   signOut(): Promise<void>;
   report(stopId: string): Promise<void>;
   /** Başkasının bildirimini yanlış diye şikayet eder; bildirim listeden kalkar. */
@@ -254,7 +261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   /* ── Eylemler ──────────────────────────────────────────────────── */
   const requestCode = useCallback(async (raw: string) => {
     const email = normalizeEmail(raw);
-    if (!isAllowedEmail(email)) throw new ApiError(EMAIL_REJECTED);
+    if (!isAllowedEmail(email) || isReviewerEmail(email)) throw new ApiError(EMAIL_REJECTED);
     await api.requestCode(email);
     pendingEmail.current = email;
   }, []);
@@ -263,6 +270,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const email = pendingEmail.current;
     if (!email) throw new ApiError('Önce e-posta adresini gir.');
     const { token } = await api.verifyCode(email, code);
+    const next: Session = { email, token };
+    await saveSession(next);
+    setSession(next);
+  }, []);
+
+  const signInReviewer = useCallback(async (raw: string) => {
+    const email = normalizeEmail(raw);
+    if (!isReviewerEmail(email)) throw new ApiError(EMAIL_REJECTED);
+    const { token } = await api.signInReviewer(email);
     const next: Session = { email, token };
     await saveSession(next);
     setSession(next);
@@ -349,6 +365,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       statusFor: (stopId: string) => statusMap.get(stopId),
       requestCode,
       verifyCode,
+      signInReviewer,
       signOut,
       report,
       flagSighting,
@@ -371,6 +388,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       statusMap,
       requestCode,
       verifyCode,
+      signInReviewer,
       signOut,
       report,
       flagSighting,

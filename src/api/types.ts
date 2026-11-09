@@ -15,6 +15,8 @@ export interface RingApi {
   requestCode(email: string): Promise<void>;
   /** Kodu doğrular, oturum jetonu döner. */
   verifyCode(email: string, code: string): Promise<{ token: string }>;
+  /** İnceleme adresine kod göndermeden girer. */
+  signInReviewer(email: string): Promise<{ token: string }>;
   /** Bugünün tüm bildirimleri. */
   fetchSightings(token: string): Promise<Sighting[]>;
   /** Yeni bildirim gönderir, sunucunun kaydettiği hâlini döner. */

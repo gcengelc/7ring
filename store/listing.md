@@ -11,9 +11,9 @@ test hesabı ya da anahtar yazmayın**; repo herkese açıksa orada görünür.
 | Paket / bundle | `com.ringnerede.app` |
 | Kategori | Navigasyon (alternatif: Yardımcı Programlar / Eğitim) |
 | Dil | Türkçe |
-| Gizlilik politikası | `https://gcengelc.github.io/7ring/privacy.html` |
-| Hesap silme (Play) | `https://gcengelc.github.io/7ring/account-deletion.html` |
-| Destek e-postası | `DESTEK_EPOSTA` (docs/ ve burada değiştirin) |
+| Gizlilik politikası | `https://7ring.netlify.app/privacy.html` |
+| Hesap silme (Play) | `https://7ring.netlify.app/account-deletion.html` |
+| Destek e-postası | `7ringdestek@gmail.com` |
 
 ## Metinler
 
@@ -91,7 +91,7 @@ iPhone 6.7" (1290×2796) ve 6.1" setleri; Play için en az 2 telefon görüntüs
 - [ ] `eas.json`: Supabase URL/anahtar, submit alanları (Apple ID, ASC App ID, Team ID, Play servis hesabı)
 - [ ] `eas init` (`extra.eas.projectId`)
 - [ ] Android push: Firebase projesi + FCM anahtarı EAS'e (`eas credentials`)
-- [ ] GitHub Pages açık (main /docs); `DESTEK_EPOSTA` gerçek adresle değiştirildi
+- [x] Yasal sayfalar Netlify'da yayında (docs/); destek e-postası girildi
 - [ ] Durak koordinatları (`src/data/stops.ts`) — girilene kadar “yakın duraklar” kapalı
 - [ ] İnceleme test hesabı hazır
 - [ ] Preview derlemesiyle gerçek ring üzerinde saha testi
